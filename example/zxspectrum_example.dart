@@ -3,10 +3,10 @@ import 'dart:math' as math;
 
 import 'package:zxspectrum/zxspectrum.dart';
 
-// good breakpoint representing a time when the machine has booted
+// Good breakpoint in 48K ROM that represents a time when the machine has booted
 const breakpoint = 0x15e6;
 
-const testRuns = 100;
+const testRuns = 500;
 
 double median(List<num> list) {
   final copy = List.from(list);
@@ -19,25 +19,36 @@ double median(List<num> list) {
   }
 }
 
+int runTest(Spectrum spectrum) {
+  // Boots spectrum and runs through to breakpoint
+  final stopwatch = Stopwatch()..start();
+  final start = stopwatch.elapsedMicroseconds;
+
+  while (spectrum.z80.pc != breakpoint) {
+    spectrum.z80.executeNextInstruction();
+  }
+
+  final end = stopwatch.elapsedMicroseconds;
+  return end - start;
+}
+
+void resetTest(Spectrum spectrum) => spectrum.reset();
+
 void main() async {
   final rom = File('roms/48.rom').readAsBytesSync();
   final spectrum = Spectrum(rom);
-
   final runTimes = <int>[];
 
+  print('Warming up...');
+  for (var i = 0; i < 10; i++) {
+    runTest(spectrum);
+    resetTest(spectrum);
+  }
+
   print('Measuring the speed of $testRuns boot times.');
-
   for (var i = 0; i < testRuns; i++) {
-    final stopwatch = Stopwatch()..start();
-    final start = stopwatch.elapsedMicroseconds;
-
-    while (spectrum.z80.pc != breakpoint) {
-      spectrum.z80.executeNextInstruction();
-    }
-
-    final end = stopwatch.elapsedMicroseconds;
-    runTimes.add(end - start);
-    spectrum.reset();
+    runTimes.add(runTest(spectrum));
+    resetTest(spectrum);
   }
 
   final maxMillisecs = runTimes.reduce(math.max) / 1000;
