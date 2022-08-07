@@ -36,7 +36,7 @@ class SpectrumMemory extends Memory {
   @override
   void reset() {
     if (isRomProtected) {
-      memory.fillRange(romTop + 1, ramTop - romTop, 0);
+      memory.fillRange(romTop + 1, ramTop + 1, 0);
     } else {
       memory.fillRange(0, ramTop + 1, 0);
     }
@@ -57,6 +57,8 @@ class SpectrumMemory extends Memory {
 
     isRomProtected = originalRomProtection;
   }
+
+  List<int> toList() => memory.buffer.asUint8List();
 
   ByteData get displayBuffer => memory.buffer.asByteData(0x4000, 0x1AFF);
 
