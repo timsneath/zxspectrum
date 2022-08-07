@@ -11,7 +11,6 @@ void main() {
     final z80 = Z80(memory, startAddress: 0xA000);
     z80.reset();
 
-    // final buffer = memory.displayBuffer;
     final image = Display.imageBuffer(memory);
     expect(image.lengthInBytes, equals(256 * 192 * 4));
   });
