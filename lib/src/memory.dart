@@ -29,16 +29,19 @@ class SpectrumMemory extends Memory {
   static const romTop = 0x3FFF;
   static const ramTop = 0xFFFF;
 
+  late final Uint8List _memory;
+
   bool isRomProtected;
 
-  SpectrumMemory({this.isRomProtected = false}) : super(ramTop + 1);
+  SpectrumMemory({this.isRomProtected = false})
+      : _memory = Uint8List(ramTop + 1);
 
   @override
   void reset() {
     if (isRomProtected) {
-      memory.fillRange(romTop + 1, ramTop + 1, 0);
+      _memory.fillRange(romTop + 1, ramTop + 1, 0);
     } else {
-      memory.fillRange(0, ramTop + 1, 0);
+      _memory.fillRange(0, ramTop + 1, 0);
     }
   }
 
@@ -58,24 +61,31 @@ class SpectrumMemory extends Memory {
     isRomProtected = originalRomProtection;
   }
 
-  List<int> toList() => memory.buffer.asUint8List();
+  List<int> toList() => _memory.buffer.asUint8List();
 
-  ByteData get displayBuffer => memory.buffer.asByteData(0x4000, 0x1AFF);
+  ByteData get displayBuffer => _memory.buffer.asByteData(0x4000, 0x1AFF);
 
   // As with a real device, no exception thrown if an attempt is made to
   // write to ROM - the request is just ignored
   @override
   void writeByte(int address, int value) {
     if (address > romTop || !isRomProtected) {
-      memory[address] = value;
+      _memory[address] = value;
     }
   }
 
   @override
   void writeWord(int address, int value) {
     if (address > romTop || !isRomProtected) {
-      memory[address] = lowByte(value);
-      memory[address + 1] = highByte(value);
+      _memory[address] = lowByte(value);
+      _memory[address + 1] = highByte(value);
     }
   }
+
+  @override
+  int readByte(int address) => _memory[address];
+
+  @override
+  int readWord(int address) =>
+      createWord(_memory[address], _memory[address + 1]);
 }
