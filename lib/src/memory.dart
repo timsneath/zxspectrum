@@ -20,6 +20,14 @@ import 'dart:typed_data';
 
 import 'package:dart_z80/dart_z80.dart';
 
+extension FillRange on ByteData {
+  void fillRange(int start, int end, int value) {
+    for (var idx = start; idx < end; idx++) {
+      setUint8(idx, value);
+    }
+  }
+}
+
 class SpectrumMemory extends Memory {
   /// The raw memory in the ZX Spectrum 48K
   ///
@@ -29,16 +37,22 @@ class SpectrumMemory extends Memory {
   static const romTop = 0x3FFF;
   static const ramTop = 0xFFFF;
 
+  late final ByteData _memory;
+
   bool isRomProtected;
 
-  SpectrumMemory({this.isRomProtected = false}) : super(ramTop + 1);
+  SpectrumMemory({this.isRomProtected = false})
+      : _memory = ByteData(ramTop + 1),
+        super(0);
 
   @override
   void reset() {
     if (isRomProtected) {
-      memory.fillRange(romTop + 1, ramTop - romTop, 0);
+      _memory.buffer.asUint8List().fillRange(romTop + 1, ramTop + 1, 0);
+      // _memory.fillRange(romTop + 1, ramTop + 1, 0);
     } else {
-      memory.fillRange(0, ramTop + 1, 0);
+      _memory.buffer.asUint8List().fillRange(0, ramTop + 1, 0);
+      // _memory.fillRange(0, ramTop + 1, 0);
     }
   }
 
@@ -58,22 +72,29 @@ class SpectrumMemory extends Memory {
     isRomProtected = originalRomProtection;
   }
 
-  ByteData get displayBuffer => memory.buffer.asByteData(0x4000, 0x1AFF);
+  ByteData get displayBuffer => ByteData.sublistView(_memory, 0x4000, 0x1AFF);
+
+  List<int> toList() => _memory.buffer.asUint8List();
+
+  @override
+  int readByte(int address) => _memory.getUint8(address);
+
+  @override
+  int readWord(int address) => _memory.getUint16(address, Endian.little);
 
   // As with a real device, no exception thrown if an attempt is made to
   // write to ROM - the request is just ignored
   @override
   void writeByte(int address, int value) {
     if (address > romTop || !isRomProtected) {
-      memory[address] = value;
+      _memory.setUint8(address, value);
     }
   }
 
   @override
   void writeWord(int address, int value) {
     if (address > romTop || !isRomProtected) {
-      memory[address] = lowByte(value);
-      memory[address + 1] = highByte(value);
+      _memory.setUint16(address, value, Endian.little);
     }
   }
 }
