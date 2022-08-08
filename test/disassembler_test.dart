@@ -16,6 +16,20 @@ void main() {
     expect(instruction.length, equals(1));
   });
 
+  test('Double byte instruction', () {
+    final instruction = Disassembler.disassembleInstruction([0xDB, 0x01]);
+    expect(instruction.byteCode, equals('db 01      '));
+    expect(instruction.disassembly, equals('IN A, (01h)'));
+    expect(instruction.length, equals(2));
+  });
+
+  test('Double byte instruction 2', () {
+    final instruction = Disassembler.disassembleInstruction([0xD3, 0xFE]);
+    expect(instruction.byteCode, equals('d3 fe      '));
+    expect(instruction.disassembly, equals('OUT (FEh), A'));
+    expect(instruction.length, equals(2));
+  });
+
   test('Triple byte instruction', () {
     final instruction = Disassembler.disassembleInstruction([0x11, 0xFF, 0xFF]);
     expect(instruction.byteCode, equals('11 ff ff   '));
