@@ -1,6 +1,6 @@
 name: zxspectrum
 description: Emulator for a Sinclair ZX Spectrum, a popular 8-bit home computer of the 1980s
-version: 0.0.2
+version: 0.0.3
 repository: https://github.com/timsneath/zxspectrum
 
 environment:
