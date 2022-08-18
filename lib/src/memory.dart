@@ -61,7 +61,9 @@ class SpectrumMemory extends Memory {
     isRomProtected = originalRomProtection;
   }
 
-  List<int> toList() => _memory.buffer.asUint8List();
+  @override
+  Uint8List read(int origin, int length) =>
+      _memory.buffer.asUint8List(origin, length);
 
   ByteData get displayBuffer => _memory.buffer.asByteData(0x4000, 0x1AFF);
 

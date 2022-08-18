@@ -10,7 +10,7 @@ void main() {
     spectrum.memory
         .load(0x4000, List.generate(0x10000 - 0x4000, (index) => 0xFF));
     spectrum.reset();
-    final resetMemory = spectrum.memory.toList();
-    expect(resetMemory.sublist(0x4000), everyElement(0));
+    final resetMemory = spectrum.memory.read(0x4000, 0x10000 - 0x4000);
+    expect(resetMemory, everyElement(0));
   });
 }
