@@ -1,6 +1,6 @@
 name: zxspectrum
 description: Emulator for a Sinclair ZX Spectrum, a popular 8-bit home computer of the 1980s
-version: 0.0.1
+version: 0.0.2
 repository: https://github.com/timsneath/zxspectrum
 
 environment:
@@ -8,11 +8,11 @@ environment:
 
 dependencies:
   collection: ^1.16.0
-  dart_z80: ^0.0.3
+  dart_z80: ^0.0.4
 
 dev_dependencies:
   lints: ^2.0.0
-  test: ^1.16.0
+  test: ^1.21.4
 
 dependency_overrides:
   dart_z80:
