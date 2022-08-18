@@ -1,3 +1,8 @@
+[![pub package](https://img.shields.io/pub/v/zxspectrum.svg)](https://pub.dev/packages/zxspectrum)
+[![Language](https://img.shields.io/badge/language-Dart-blue.svg)](https://dart.dev)
+![Build](https://github.com/timsneath/zxspectrum/workflows/Build/badge.svg)
+[![codecov](https://codecov.io/gh/timsneath/zxspectrum/branch/main/graph/badge.svg?token=Pj5Ai7OasB)](https://codecov.io/gh/timsneath/zxspectrum)
+
 # ZX Spectrum emulator
 
 A simple ZX Spectrum emulator, originally built with UWP and C# before being
