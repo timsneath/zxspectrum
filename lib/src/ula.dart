@@ -1,98 +1,28 @@
 // ula.dart -- ports and input for ZX Spectrum
 
-import 'dart:typed_data';
-
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:dart_z80/dart_z80.dart';
-
-// Reading the port on the left side (e.g. 0xFEFE) will return an 8-bit value
-// of which the least significant five bits represent a bitmap of the value,
-// so for example: if the 'V' key is held down, the value nnn10000 can be read
-// from port 0xFEFE.
-//
-// More information at:
-//   See http://www.breakintoprogram.co.uk/computers/zx-spectrum/keyboard
-
-const _keyMap = <int, List<String>>{
-  0xFEFE: ['SHIFT', 'Z', 'X', 'C', 'V'],
-  0xFDFE: ['A', 'S', 'D', 'F', 'G'],
-  0xFBFE: ['Q', 'W', 'E', 'R', 'T'],
-  0xF7FE: ['1', '2', '3', '4', '5'],
-  0xEFFE: ['0', '9', '8', '7', '6'],
-  0xDFFE: ['P', 'O', 'I', 'U', 'Y'],
-  0xBFFE: ['ENTER', 'L', 'K', 'J', 'H'],
-  0x7FFE: ['SPACE', 'SYMBL', 'M', 'N', 'B']
-};
 
 // See http://www.worldofspectrum.org/ZXBasicManual/zxmanchap23.html and
 // https://worldofspectrum.org/faq/reference/48kreference.htm
 class ULA {
-  /* PORTS */
+  static const _keyMap = <int, List<String>>{
+    0: ['SHIFT', 'Z', 'X', 'C', 'V'],
+    1: ['A', 'S', 'D', 'F', 'G'],
+    2: ['Q', 'W', 'E', 'R', 'T'],
+    3: ['1', '2', '3', '4', '5'],
+    4: ['0', '9', '8', '7', '6'],
+    5: ['P', 'O', 'I', 'U', 'Y'],
+    6: ['ENTER', 'L', 'K', 'J', 'H'],
+    7: ['SPACE', 'SYMBL', 'M', 'N', 'B']
+  };
 
-  // There are 65,536 addressable ports, each of which can read or write an
-  // 8-bit value. However, this is a cheap over-simplification for early
-  // development: in practice far fewer ports are independently addressable or
-  // useful.
-  late final ByteData inputPorts;
-
-  late int screenBorder;
-
-  ULA() {
-    final importPortList = Uint8List(0x10000);
-    inputPorts = ByteData.sublistView(importPortList);
-    screenBorder = 0x00;
-  }
+  int screenBorder = 0x00;
 
   void reset() {
-    for (var idx = 0; idx < inputPorts.lengthInBytes; idx++) {
-      inputPorts.setUint8(idx, 0);
-    }
-
     screenBorder = 0x00;
   }
 
-  /* KEYBOARD */
-
-  // Multiple keys can be pressed at once, so we create a set of keys that
-  // we add or remove to based on interactions.
-  Set<String> keysPressed = {};
-
-  void keyPressed(String keycap) {
-    keysPressed.add(keycap);
-
-    setKeyboardPorts();
-  }
-
-  void keyReleased(String keycap) {
-    keysPressed.remove(keycap);
-
-    setKeyboardPorts();
-  }
-
-  void setKeyboardPorts() {
-    // set all keyboard bits high at first
-    for (final key in _keyMap.keys) {
-      inputPorts.setUint8(key, 0xFF);
-    }
-
-    for (final keyPressed in keysPressed) {
-      // We should never be in a position where a key doesn't map to a port,
-      // or doesn't map to an index in that port. Asserting to fail-fast in
-      // this scenario.
-      final port = keyPortMap(keyPressed)!;
-
-      final keyBit = _keyMap[port]!.indexOf(keyPressed);
-      assert(keyBit != -1);
-
-      var portValue = inputPorts.getUint8(port);
-      portValue = resetBit(portValue, keyBit);
-      inputPorts.setUint8(port, portValue);
-    }
-  }
-
-// Gets the port that maps to the keycap
-  int? keyPortMap(String keycap) =>
-      _keyMap.keys.firstWhereOrNull((port) => _keyMap[port]!.contains(keycap));
+  /* BORDER COLOR, EAR and MIC */
 
   /// Writes a value to the ULA.
   ///
@@ -117,13 +47,60 @@ class ULA {
     screenBorder = borderColor;
   }
 
+  // This should vary if we ever support real-time tape input.
+  bool get earInput => true;
+
+  /* KEYBOARD */
+
+  // Multiple keys can be pressed at once, so we create a set of keys that
+  // we add or remove to based on interactions.
+  Set<String> keysPressed = {};
+
+  void keyPressed(String keycap) {
+    keysPressed.add(keycap);
+  }
+
+  void keyReleased(String keycap) {
+    keysPressed.remove(keycap);
+  }
+
+  /// Reads a value from the ULA.
+  ///
+  /// Bits 0 through 4 express the keys pressed.
+  /// Bits 5 and 7 are always set.
+  /// Bit 6 is the EAR input bit.
   int read(int addressBus) {
-    if (addressBus % 2 == 0) // ULA
-    {
-      if (_keyMap.containsKey(addressBus)) {
-        return inputPorts.getUint8(addressBus);
+    // Reading the port 0xFE with a zero set in one of the eight high address
+    // bus lines will return an 8-bit value, of which the least significant five
+    // bits represent a bitmap of the value, so for example: if the 'V' key is
+    // held down, the value nnn10000 can be read from port 0xFEFE. If multiple
+    // zeroes are set, the values are ANDed together.
+    //
+    // More information at:
+    //   http://www.breakintoprogram.co.uk/computers/zx-spectrum/keyboard
+
+    final halfRowSelectorBitmask = highByte(addressBus);
+    var output = 0xFF;
+
+    // Multiple address lines may be cleared.
+    for (var bit = 0; bit < 8; bit++) {
+      if (!isBitSet(halfRowSelectorBitmask, bit)) {
+        // Now we need to test whether the specific half row contains one of the
+        // pressed keys. If so, we clear that bit from the output.
+        final halfRow = _keyMap[bit]!;
+        for (var key = 0; key < 5; key++) {
+          if (keysPressed.contains(halfRow[key])) {
+            output = resetBit(output, key);
+          }
+        }
       }
     }
-    return highByte(addressBus);
+
+    // Now set EAR input
+    if (!earInput) {
+      output = resetBit(output, 6);
+    }
+
+    return output;
   }
 }
