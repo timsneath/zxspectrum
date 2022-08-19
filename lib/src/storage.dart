@@ -63,16 +63,20 @@ class Storage {
   // Per http://rk.nvg.ntnu.no/sinclair/formats/z80-format.html
   // the snapshot format has a 30 byte header containing the Z80 registers
   void loadZ80Snapshot(ByteData snapshot) {
-    final r = snapshot.buffer.asUint8List(0, 30);
+    var r = snapshot.buffer.asUint8List(0, 30);
 
     var fileFormatVersion = 145;
     var isDataBlockCompressed = false;
+    var headerLength = 30;
 
     if (createWord(r[6], r[7]) == 0) {
+      r = snapshot.buffer.asUint8List(0, 86);
       if (createWord(r[30], r[31]) == 54) {
         fileFormatVersion = 300;
+        headerLength = 30 + 54 + 2;
       } else if (createWord(r[30], r[31]) == 23) {
         fileFormatVersion = 201;
+        headerLength = 30 + 23 + 2;
       } else {
         throw Exception('Unrecognized Z80 file format.');
       }
@@ -109,11 +113,11 @@ class Storage {
       z80.im = 2;
     }
 
-    if (!isDataBlockCompressed && (fileFormatVersion == 145)) {
-      z80.memory.load(0x4000, snapshot.buffer.asUint8List(30));
+    final dataBlock = snapshot.buffer.asUint8List(headerLength);
+    if (!isDataBlockCompressed) {
+      z80.memory.load(0x4000, dataBlock);
     } else {
-      z80.memory.load(0x4000,
-          decodedCompressedZ80DataBlock(snapshot.buffer.asUint8List(30)));
+      z80.memory.load(0x4000, decodedCompressedZ80DataBlock(dataBlock));
     }
   }
 
@@ -128,8 +132,8 @@ class Storage {
     // Lists are not identical just because they contain the same elements.
     final listEquals = const ListEquality<int>().equals;
 
-    // End marker for a compressed Z80 file should be 00 ED ED 00. For safety,
-    // also compare against the end of file.
+    // End marker for a compressed Z80 file is 00 ED ED 00. But
+    // also compare against the end of file, since later file formats omit the end marker.
     while (!listEquals(rawData.sublist(idx), [0x00, 0xED, 0xED, 0x00]) &&
         idx < rawData.lengthInBytes) {
       if (rawData[idx] == 0xED && rawData[idx + 1] == 0xED) {
