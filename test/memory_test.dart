@@ -10,6 +10,12 @@ void main() {
     expect(mem.readByte(0xFFFF), equals(0xFF));
   });
 
+  test("ROM is protected by default", () {
+    final mem = SpectrumMemory();
+    mem.writeByte(0x0FFF, 255);
+    expect(mem.readByte(0x0FFF), equals(0x00));
+  });
+
   test("ROM is protected from writes", () {
     final mem = SpectrumMemory(isRomProtected: true);
     mem.writeByte(0x0FFF, 255);

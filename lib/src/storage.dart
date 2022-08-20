@@ -6,6 +6,8 @@ import 'package:collection/collection.dart';
 import 'spectrum.dart';
 import 'package:dart_z80/dart_z80.dart';
 
+import 'spectrumcolor.dart';
+
 class Storage {
   final Spectrum spectrum;
 
@@ -51,7 +53,7 @@ class Storage {
       ..af = createWord(r[21], r[22])
       ..sp = createWord(r[23], r[24])
       ..im = r[25];
-    spectrum.ula.screenBorder = r[26];
+    spectrum.ula.screenBorder = SpectrumColor.fromByteValue(r[26]);
 
     spectrum.z80.memory.load(0x4000, snapshot.buffer.asUint8List(27));
 
@@ -93,7 +95,8 @@ class Storage {
     z80.sp = createWord(r[8], r[9]);
     z80.i = r[10];
     z80.r = r[11];
-    spectrum.ula.screenBorder = (r[12] << 1) & 0x03;
+    spectrum.ula.screenBorder =
+        SpectrumColor.fromByteValue((r[12] << 1) & 0x03);
     if (isBitSet(r[12], 5)) {
       isDataBlockCompressed = true;
     }

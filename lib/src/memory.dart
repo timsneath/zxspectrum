@@ -33,7 +33,7 @@ class SpectrumMemory extends Memory {
 
   bool isRomProtected;
 
-  SpectrumMemory({this.isRomProtected = false})
+  SpectrumMemory({this.isRomProtected = true})
       : _memory = Uint8List(ramTop + 1);
 
   @override

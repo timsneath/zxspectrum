@@ -2,60 +2,58 @@
 
 import 'package:dart_z80/dart_z80.dart';
 
+import '../zxspectrum.dart';
+
 // See http://www.worldofspectrum.org/ZXBasicManual/zxmanchap23.html and
 // https://worldofspectrum.org/faq/reference/48kreference.htm
 class ULA {
   static const _keyMap = <int, List<String>>{
-    0: ['SHIFT', 'Z', 'X', 'C', 'V'],
-    1: ['A', 'S', 'D', 'F', 'G'],
-    2: ['Q', 'W', 'E', 'R', 'T'],
-    3: ['1', '2', '3', '4', '5'],
-    4: ['0', '9', '8', '7', '6'],
-    5: ['P', 'O', 'I', 'U', 'Y'],
-    6: ['ENTER', 'L', 'K', 'J', 'H'],
-    7: ['SPACE', 'SYMBL', 'M', 'N', 'B']
+    0x00: ['SHIFT', 'Z', 'X', 'C', 'V'],
+    0x01: ['A', 'S', 'D', 'F', 'G'],
+    0x02: ['Q', 'W', 'E', 'R', 'T'],
+    0x03: ['1', '2', '3', '4', '5'],
+    0x04: ['0', '9', '8', '7', '6'],
+    0x05: ['P', 'O', 'I', 'U', 'Y'],
+    0x06: ['ENTER', 'L', 'K', 'J', 'H'],
+    0x07: ['SPACE', 'SYMBL', 'M', 'N', 'B']
   };
 
-  int screenBorder = 0x00;
+  // Multiple keys can be pressed at once, so we create a set of keys from which
+  // we add or remove based on interactions.
+  final Set<String> _keysPressed = {};
 
+  ///
+  bool _earMicPort = true;
+
+  /// The current border color.
+  SpectrumColor screenBorder = SpectrumColor.fromName(SpectrumColors.black);
+
+  /// Resets the ULA, for example as a result of a power cycle.
   void reset() {
-    screenBorder = 0x00;
+    screenBorder = SpectrumColor.fromName(SpectrumColors.black);
+    _earMicPort = false;
     _keysPressed.clear();
   }
-
-  /* BORDER COLOR, EAR and MIC */
 
   /// Writes a value to the ULA.
   ///
   /// Values written are interpreted as follows:
   ///
+  /// ```
   ///   Bit   7   6   5   4   3   2   1   0
   ///       +-------------------------------+
   ///       |   |   |   | E | M |   Border  |
   ///       +-------------------------------+
+  /// ```
   ///
   /// (where E = EAR port and M = MIC port). Per WoS, the EAR and MIC sockets
   /// are connected only by resistors, so activating one activates the other;
   /// the EAR is generally used for output as it produces a louder sound. The
   /// upper bits are unused.
   void write(int value) {
-    final borderColor = value & 0x07;
-    // ignore: unused_local_variable
-    final mic = value & 0x08;
-    // ignore: unused_local_variable
-    final ear = value & 0x10;
-
-    screenBorder = borderColor;
+    _earMicPort = ((value & 0x08) == 0x08) | ((value & 0x10) == 0x10);
+    screenBorder = SpectrumColor.fromByteValue(value & 0x07);
   }
-
-  // This should vary if we ever support real-time tape input.
-  bool get earInput => true;
-
-  /* KEYBOARD */
-
-  // Multiple keys can be pressed at once, so we create a set of keys that
-  // we add or remove to based on interactions.
-  final Set<String> _keysPressed = {};
 
   void keyDown(String keycap) => _keysPressed.add(keycap);
 
@@ -94,7 +92,7 @@ class ULA {
     }
 
     // Now set EAR input
-    if (!earInput) {
+    if (!_earMicPort) {
       output = resetBit(output, 6);
     }
 

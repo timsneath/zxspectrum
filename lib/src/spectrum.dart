@@ -12,24 +12,27 @@ import 'ula.dart';
 /// and coordinates between them.
 class Spectrum {
   /// The computer memory
-  late final SpectrumMemory memory;
+  final SpectrumMemory memory;
 
   /// The ULA (uncommitted logic array)
-  late final ULA ula;
+  final ULA ula;
 
   /// The Z80A microprocessor
   late final Z80 z80;
 
-  /// A BMP representing the current frame displayed on the screen.
-  Uint8List get displayAsBitmap => Display.bmpImage(memory);
-
-  Spectrum(Uint8List rom) {
-    memory = SpectrumMemory(isRomProtected: true);
-    memory.load(0x0000, rom.buffer.asUint8List(), ignoreRomProtection: true);
-    ula = ULA();
+  /// Initializes the ZX Spectrum emulator with a given ROM image.
+  ///
+  /// The ROM image will be loaded at 0x0000.
+  Spectrum(Uint8List rom)
+      : ula = ULA(),
+        memory = SpectrumMemory() {
+    memory.load(0x0000, rom, ignoreRomProtection: true);
     z80 = Z80(memory,
         startAddress: 0x0000, onPortRead: readPort, onPortWrite: writePort);
   }
+
+  /// A BMP representing the current frame displayed on the screen.
+  Uint8List get displayAsBitmap => Display.bmpImage(memory);
 
   /// Handle a key down event
   void keyDown(String key) => ula.keyDown(key);
