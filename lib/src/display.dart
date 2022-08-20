@@ -115,9 +115,12 @@ class Display {
         // apply state to the display
         for (var bit = 7; bit >= 0; bit--) {
           final isBitSet = (pixel8 & (1 << bit)) == 1 << bit;
-          buffer[idx++] = isBitSet ? inkColor.blue : paperColor.blue;
-          buffer[idx++] = isBitSet ? inkColor.green : paperColor.green;
-          buffer[idx++] = isBitSet ? inkColor.red : paperColor.red;
+          buffer[idx++] =
+              isBitSet ? inkColor.blueChannel : paperColor.blueChannel;
+          buffer[idx++] =
+              isBitSet ? inkColor.greenChannel : paperColor.greenChannel;
+          buffer[idx++] =
+              isBitSet ? inkColor.redChannel : paperColor.redChannel;
           buffer[idx++] = 0xFF;
         }
       }

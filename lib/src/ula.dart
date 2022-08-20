@@ -26,11 +26,11 @@ class ULA {
   bool _earMicPort = true;
 
   /// The current border color.
-  SpectrumColor screenBorder = SpectrumColor.fromName(SpectrumColors.black);
+  SpectrumColor screenBorder = SpectrumColor.black;
 
   /// Resets the ULA, for example as a result of a power cycle.
   void reset() {
-    screenBorder = SpectrumColor.fromName(SpectrumColors.black);
+    screenBorder = SpectrumColor.black;
     _earMicPort = false;
     _keysPressed.clear();
   }
