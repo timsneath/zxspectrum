@@ -20,7 +20,7 @@ import 'dart:typed_data';
 
 import 'package:dart_z80/dart_z80.dart';
 
-class SpectrumMemory extends Memory {
+class SpectrumMemory extends MemoryBase {
   /// The raw memory in the ZX Spectrum 48K
   ///
   /// We treat the memory space as a list of unsigned bytes from 0x0000 to

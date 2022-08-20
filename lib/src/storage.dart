@@ -17,7 +17,7 @@ class Storage {
 
   void loadBinaryData(ByteData snapshot,
       {int startLocation = 0x4000, int pc = 0x4000}) {
-    spectrum.z80.memory.load(startLocation, snapshot.buffer.asUint8List());
+    spectrum.loadMemory(startLocation, snapshot.buffer.asUint8List());
     spectrum.z80.pc = pc;
     // z80.sp = pc;
   }
@@ -55,7 +55,7 @@ class Storage {
       ..im = r[25];
     spectrum.ula.screenBorder = SpectrumColor.fromByteValue(r[26]);
 
-    spectrum.z80.memory.load(0x4000, snapshot.buffer.asUint8List(27));
+    spectrum.loadMemory(0x4000, snapshot.buffer.asUint8List(27));
 
     // The program counter is pushed onto the stack, and since SP points to
     // the stack, we can simply POP it off.
@@ -118,9 +118,9 @@ class Storage {
 
     final dataBlock = snapshot.buffer.asUint8List(headerLength);
     if (!isDataBlockCompressed) {
-      z80.memory.load(0x4000, dataBlock);
+      spectrum.loadMemory(0x4000, dataBlock);
     } else {
-      z80.memory.load(0x4000, decodedCompressedZ80DataBlock(dataBlock));
+      spectrum.loadMemory(0x4000, decodedCompressedZ80DataBlock(dataBlock));
     }
   }
 

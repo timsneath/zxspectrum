@@ -17,7 +17,7 @@ class Display {
   //
   // Adapted from
   //   https://stackoverflow.com/questions/51315442/use-ui-decodeimagefromlist-to-display-an-image-created-from-a-list-of-bytes/51316489
-  static Uint8List bmpImage(Memory memory) {
+  static Uint8List bmpImage(MemoryBase memory) {
     const bmpHeaderSize = 54;
 
     final fileLength =
@@ -60,7 +60,7 @@ class Display {
   // Returns a simple BGRA imagebuffer from memory, converting the
   // ZX Spectrum in-memory display model into a raw list of color values starting
   // at (0,0) and ending at (255,191).
-  static Uint8List imageBuffer(Memory memory) {
+  static Uint8List imageBuffer(MemoryBase memory) {
     final buffer = Uint8List(256 * 192 * 4);
     int idx;
 

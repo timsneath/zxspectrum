@@ -26,13 +26,18 @@ class Spectrum {
   Spectrum(Uint8List rom)
       : ula = ULA(),
         memory = SpectrumMemory() {
-    memory.load(0x0000, rom, ignoreRomProtection: true);
+    loadMemory(0x0000, rom, ignoreRomProtection: true);
     z80 = Z80(memory,
         startAddress: 0x0000, onPortRead: readPort, onPortWrite: writePort);
   }
 
   /// A BMP representing the current frame displayed on the screen.
   Uint8List get displayAsBitmap => Display.bmpImage(memory);
+
+  /// Load a list of byte data into memory, starting at origin.
+  void loadMemory(int origin, Iterable<int> data,
+          {bool ignoreRomProtection = false}) =>
+      memory.load(origin, data, ignoreRomProtection: ignoreRomProtection);
 
   /// Handle a key down event
   void keyDown(String key) => ula.keyDown(key);
