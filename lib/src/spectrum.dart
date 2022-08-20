@@ -31,6 +31,12 @@ class Spectrum {
         startAddress: 0x0000, onPortRead: readPort, onPortWrite: writePort);
   }
 
+  /// Handle a key down event
+  void keyDown(String key) => ula.keyDown(key);
+
+  /// Handle a key up event
+  void keyUp(String key) => ula.keyUp(key);
+
   /// Writes a value to an I/O port.
   void writePort(int addressBus, int value) {
     // Every even I/O address will address the ULA, but to avoid problems with

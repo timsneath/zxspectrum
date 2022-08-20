@@ -20,6 +20,7 @@ class ULA {
 
   void reset() {
     screenBorder = 0x00;
+    _keysPressed.clear();
   }
 
   /* BORDER COLOR, EAR and MIC */
@@ -54,15 +55,11 @@ class ULA {
 
   // Multiple keys can be pressed at once, so we create a set of keys that
   // we add or remove to based on interactions.
-  Set<String> keysPressed = {};
+  final Set<String> _keysPressed = {};
 
-  void keyPressed(String keycap) {
-    keysPressed.add(keycap);
-  }
+  void keyDown(String keycap) => _keysPressed.add(keycap);
 
-  void keyReleased(String keycap) {
-    keysPressed.remove(keycap);
-  }
+  void keyUp(String keycap) => _keysPressed.remove(keycap);
 
   /// Reads a value from the ULA.
   ///
@@ -89,7 +86,7 @@ class ULA {
         // pressed keys. If so, we clear that bit from the output.
         final halfRow = _keyMap[bit]!;
         for (var key = 0; key < 5; key++) {
-          if (keysPressed.contains(halfRow[key])) {
+          if (_keysPressed.contains(halfRow[key])) {
             output = resetBit(output, key);
           }
         }
