@@ -23,20 +23,20 @@ class Context {
 
   @override
   String toString() => '[${pc.toRadixString(16)}] '
-      '${af.toRadixString(16)} '
-      '${bc.toRadixString(16)} '
-      '${de.toRadixString(16)} '
-      '${hl.toRadixString(16)} '
-      '${ix.toRadixString(16)} '
-      '${iy.toRadixString(16)} '
-      '${af_.toRadixString(16)} '
-      '${bc_.toRadixString(16)} '
-      '${de_.toRadixString(16)} '
-      '${hl_.toRadixString(16)} '
-      '${sp.toRadixString(16)} '
-      '${im.toRadixString(16)} '
-      '${iff1.toRadixString(16)} '
-      '${iff2.toRadixString(16)} ';
+      '${toHex16(af)} '
+      '${toHex16(bc)} '
+      '${toHex16(de)} '
+      '${toHex16(hl)} '
+      '${toHex16(ix)} '
+      '${toHex16(iy)} '
+      '${toHex16(af_)} '
+      '${toHex16(bc_)} '
+      '${toHex16(de_)} '
+      '${toHex16(hl_)} '
+      '${toHex16(sp)} '
+      '${toHex16(im)} '
+      '${toHex16(iff1)} '
+      '${toHex16(iff2)} ';
 }
 
 AllContext saveContext(Spectrum dartSpeccy) {
@@ -104,7 +104,9 @@ bool compareRegister(int i, int pc, String reg, int ffiValue, int dartValue) {
         'Dart(${dartValue.toRadixString(16)})');
 
     print(Disassembler.disassembleMultipleInstructions(
-        romFile.sublist(pc), 4, pc));
+        romFile.sublist(oldContext.dartContext.pc),
+        4,
+        oldContext.dartContext.pc));
     return true;
   }
   return false;
