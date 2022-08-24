@@ -10,8 +10,8 @@ import 'display.dart';
 import 'memory.dart';
 import 'ula.dart';
 
-typedef Z80DataIn = UnsignedChar Function(Size, UnsignedShort);
-typedef Z80DataOut = Void Function(Size, UnsignedShort, UnsignedChar);
+typedef Z80DataInCallback = UnsignedChar Function(Size, UnsignedShort);
+typedef Z80DataOutCallback = Void Function(Size, UnsignedShort, UnsignedChar);
 
 /// Represents the ZX Spectrum 48K.
 ///
@@ -42,10 +42,10 @@ class SpectrumFFI {
     //     startAddress: 0x0000, onPortRead: readPort, onPortWrite: writePort);
     z80b = libz80(DynamicLibrary.open('../libz80.so'));
     ctx = calloc<Z80Context>();
-    ctx.ref.memRead = Pointer.fromFunction<Z80DataIn>(memRead, 0);
-    ctx.ref.memWrite = Pointer.fromFunction<Z80DataOut>(memWrite);
-    ctx.ref.ioRead = Pointer.fromFunction<Z80DataIn>(ioRead, 0);
-    ctx.ref.ioWrite = Pointer.fromFunction<Z80DataOut>(ioWrite);
+    ctx.ref.memRead = Pointer.fromFunction<Z80DataInCallback>(memRead, 0);
+    ctx.ref.memWrite = Pointer.fromFunction<Z80DataOutCallback>(memWrite);
+    ctx.ref.ioRead = Pointer.fromFunction<Z80DataInCallback>(ioRead, 0);
+    ctx.ref.ioWrite = Pointer.fromFunction<Z80DataOutCallback>(ioWrite);
   }
 
   // int memRead(int param, int addr) => memory.readByte(addr);
@@ -97,9 +97,9 @@ class SpectrumFFI {
 }
 
 final rom = File('roms/48.rom').readAsBytesSync();
-final spectrum = SpectrumFFI(rom);
-int memRead(int param, int addr) => spectrum.memory.readByte(addr);
+final ffiSpeccy = SpectrumFFI(rom);
+int memRead(int param, int addr) => ffiSpeccy.memory.readByte(addr);
 void memWrite(int param, int addr, int data) =>
-    spectrum.memory.writeByte(addr, data);
-int ioRead(int param, int addr) => spectrum.readPort(addr);
-void ioWrite(int param, int addr, int data) => spectrum.writePort(addr, data);
+    ffiSpeccy.memory.writeByte(addr, data);
+int ioRead(int param, int addr) => ffiSpeccy.readPort(addr);
+void ioWrite(int param, int addr, int data) => ffiSpeccy.writePort(addr, data);
