@@ -40,7 +40,7 @@ class SpectrumFFI {
     loadMemory(0x0000, rom, ignoreRomProtection: true);
     // z80 = Z80(memory,
     //     startAddress: 0x0000, onPortRead: readPort, onPortWrite: writePort);
-    z80b = libz80(DynamicLibrary.open('../libz80.so'));
+    z80b = libz80(DynamicLibrary.open('libz80/libz80.so'));
     ctx = calloc<Z80Context>();
     ctx.ref.memRead = Pointer.fromFunction<Z80DataInCallback>(memRead, 0);
     ctx.ref.memWrite = Pointer.fromFunction<Z80DataOutCallback>(memWrite);
