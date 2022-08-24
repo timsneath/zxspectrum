@@ -23,7 +23,9 @@ ffigen:
   headers:
     entry-points:
      - 'libz80/z80.h'
+  preamble: |
+    // ignore_for_file: camel_case_types, non_constant_identifier_names, unused_field, unused_element, constant_identifier_names
 
-dependency_overrides:
-  dart_z80:
-    path: ../z80
+# dependency_overrides:
+#   dart_z80:
+#     path: ../z80

@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -19,24 +20,24 @@ double median(List<num> list) {
   }
 }
 
-int runTest(Spectrum spectrum) {
+int runTest(SpectrumFFI spectrum) {
   // Boots spectrum and runs through to breakpoint
   final stopwatch = Stopwatch()..start();
   final start = stopwatch.elapsedMicroseconds;
 
-  while (spectrum.z80.pc != breakpoint) {
-    spectrum.z80.executeNextInstruction();
+  while (spectrum.ctx.ref.PC != breakpoint) {
+    spectrum.z80b.Z80Execute(spectrum.ctx);
   }
 
   final end = stopwatch.elapsedMicroseconds;
   return end - start;
 }
 
-void resetTest(Spectrum spectrum) => spectrum.reset();
+void resetTest(SpectrumFFI spectrum) => spectrum.reset();
 
 void main() async {
   final rom = File('roms/48.rom').readAsBytesSync();
-  final spectrum = Spectrum(rom);
+  final spectrum = SpectrumFFI(rom);
   final runTimes = <int>[];
 
   print('Warming up...');
