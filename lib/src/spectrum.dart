@@ -1,6 +1,8 @@
+import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:dart_z80/dart_z80.dart';
+import 'package:zxspectrum/src/libz80.dart';
 
 import 'display.dart';
 import 'memory.dart';
@@ -20,6 +22,9 @@ class Spectrum {
   /// The Z80A microprocessor
   late final Z80 z80;
 
+  /// The libz80 emulator
+  late final libz80 z80b;
+
   /// Initializes the ZX Spectrum emulator with a given ROM image.
   ///
   /// The ROM image will be loaded at 0x0000.
@@ -29,6 +34,7 @@ class Spectrum {
     loadMemory(0x0000, rom, ignoreRomProtection: true);
     z80 = Z80(memory,
         startAddress: 0x0000, onPortRead: readPort, onPortWrite: writePort);
+    z80b = libz80(DynamicLibrary.open('../libz80.so'));
   }
 
   /// A BMP representing the current frame displayed on the screen.

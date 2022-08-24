@@ -9,11 +9,21 @@ environment:
 dependencies:
   collection: ^1.16.0
   dart_z80: ^0.0.5
+  ffi: ^2.0.1
+  ffigen: ^6.0.1
 
 dev_dependencies:
   lints: ^2.0.0
   test: ^1.21.5
 
-# dependency_overrides:
-#   dart_z80:
-#     path: ../z80
+ffigen:
+  name: 'libz80'
+  description: 'Bindings to the libz80 emulator core.'
+  output: 'lib/src/libz80.dart'
+  headers:
+    entry-points:
+     - 'libz80/z80.h'
+
+dependency_overrides:
+  dart_z80:
+    path: ../z80
